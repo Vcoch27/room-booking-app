@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+.expo-scaffold/
+dist/
+coverage/
+firebase/functions/lib/
+*-debug.log
+.env
+.env.*
+!.env.example
+.firebase/
+*.tsbuildinfo
+artifacts/
+/artifacts-audit.json
