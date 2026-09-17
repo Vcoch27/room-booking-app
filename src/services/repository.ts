@@ -11,6 +11,7 @@ export interface Repository {
   mode: "demo" | "firebase";
   observeSession(next: (session: Session | null) => void): Unsubscribe;
   login(email: string, password: string, register: boolean): Promise<void>;
+  loginWithGoogle(): Promise<void>;
   logout(): Promise<void>;
   rooms(
     next: (value: Snapshot<Room[]>) => void,
@@ -29,4 +30,7 @@ export interface Repository {
   ): Unsubscribe;
   create(intent: BookingIntent): Promise<Booking>;
   cancel(id: string): Promise<void>;
+  checkIn(id: string): Promise<void>;
+  endEarly(id: string): Promise<void>;
+  toggleFavorite?(roomId: string, isFavorite: boolean): Promise<void>;
 }

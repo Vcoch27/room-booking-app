@@ -1,4 +1,5 @@
-export type Equipment = "Wi-Fi" | "Máy chiếu" | "Bảng trắng" | "Máy tính";
+export type Equipment =
+  "Wi-Fi" | "Máy chiếu" | "Bảng trắng" | "Máy tính" | "Điều hòa";
 export type Room = {
   id: string;
   name: string;
@@ -9,6 +10,8 @@ export type Room = {
   equipment: Equipment[];
   description: string;
   active: boolean;
+  imageUrl?: string;
+  imageKey?: string;
 };
 export type Session = { uid: string; email: string };
 export type Booking = {
@@ -20,9 +23,11 @@ export type Booking = {
   slotId: string;
   startAt: number;
   endAt: number;
-  status: "CONFIRMED" | "CANCELLED";
+  status: "CONFIRMED" | "CANCELLED" | "CHECKED_IN" | "COMPLETED";
   passToken: string;
   createdAt: number;
+  checkedInAt?: number;
+  endedAt?: number;
 };
 export type BookingIntent = {
   roomId: string;
@@ -35,6 +40,8 @@ export type SlotLock = {
   date: string;
   slotId: string;
   bookingId: string;
+  userId?: string;
+  createdAt?: number;
 };
 export type Filters = {
   search: string;
@@ -93,7 +100,8 @@ export function validateIntent(
   if (times.startAt <= now)
     throw new Error("Khung giờ đã bắt đầu. Hãy chọn giờ khác.");
   const active = bookings.filter(
-    (b) => b.status === "CONFIRMED" && b.endAt > now,
+    (b) =>
+      (b.status === "CONFIRMED" || b.status === "CHECKED_IN") && b.endAt > now,
   );
   if (active.length >= POLICY.maxUpcoming)
     throw new Error("Bạn đã có 3 lịch đặt sắp tới.");

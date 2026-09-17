@@ -1,5 +1,67 @@
-import { Room } from "./model";
-export const seedRooms: Room[] = [
+import { initializeApp, getApps } from "firebase/app";
+import { getFirestore, doc, setDoc, connectFirestoreEmulator } from "firebase/firestore";
+import { readFileSync } from "node:fs";
+
+// Load environment config if available
+let envConfig = {};
+try {
+  const envContent = readFileSync(".env", "utf8");
+  for (const line of envContent.split("\n")) {
+    const match = line.match(/^([^=]+)=(.*)$/);
+    if (match) {
+      envConfig[match[1].trim()] = match[2].trim();
+    }
+  }
+} catch {
+  // Ignore missing .env
+}
+
+// Check if .firebaserc has project ID
+let firebasercProjectId = "";
+try {
+  const rc = JSON.parse(readFileSync(".firebaserc", "utf8"));
+  firebasercProjectId = rc.projects?.default || "";
+} catch {
+  // Ignore
+}
+
+const projectId =
+  process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ||
+  envConfig.EXPO_PUBLIC_FIREBASE_PROJECT_ID ||
+  process.env.GCLOUD_PROJECT ||
+  firebasercProjectId ||
+  "demo-studyspace";
+
+const apiKey =
+  process.env.EXPO_PUBLIC_FIREBASE_API_KEY ||
+  envConfig.EXPO_PUBLIC_FIREBASE_API_KEY ||
+  "demo-api-key";
+
+const isEmulator =
+  Boolean(process.env.FIRESTORE_EMULATOR_HOST) ||
+  envConfig.EXPO_PUBLIC_USE_EMULATORS === "true";
+
+console.log(`[Seed] Initializing Firestore for project: ${projectId}...`);
+
+const app = getApps().length
+  ? getApps()[0]
+  : initializeApp({
+      apiKey,
+      projectId,
+      authDomain: `${projectId}.firebaseapp.com`,
+    });
+
+const db = getFirestore(app);
+
+if (isEmulator) {
+  const host = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
+  const [h, p] = host.split(":");
+  console.log(`[Seed] Connecting to Firestore emulator at ${h}:${p}...`);
+  connectFirestoreEmulator(db, h, Number(p) || 8080);
+}
+
+// 20 realistic VKU rooms
+const rooms = [
   {
     id: "a101",
     name: "Phòng học nhóm A101",
@@ -301,3 +363,19 @@ export const seedRooms: Room[] = [
     imageKey: "room-v301",
   },
 ];
+
+async function seed() {
+  console.log(`[Seed] Starting seed for ${rooms.length} VKU rooms...`);
+  for (const room of rooms) {
+    const ref = doc(db, "rooms", room.id);
+    await setDoc(ref, room, { merge: true });
+    console.log(`  ✓ Seeded room [${room.id.toUpperCase()}] ${room.name} (${room.building})`);
+  }
+  console.log(`\n🎉 Successfully seeded all ${rooms.length} rooms to Firestore!`);
+  process.exit(0);
+}
+
+seed().catch((err) => {
+  console.error("[Seed] Error seeding rooms:", err);
+  process.exit(1);
+});

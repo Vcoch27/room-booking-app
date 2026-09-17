@@ -89,6 +89,7 @@ describe("campus policy", () => {
         ...EMPTY_FILTERS,
         equipment: ["Máy tính", "Máy chiếu"],
       }).map((r) => r.id),
-    ).toEqual(["b201"]);
+    ).toEqual(["b201", "b301", "b401"]);
+    expect(seedRooms).toHaveLength(20);
   });
 });

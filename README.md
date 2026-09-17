@@ -13,11 +13,19 @@ npm start
 npm run web
 ```
 
-Mặc định là **demo cục bộ**. Dùng email mẫu để vào ứng dụng, không cần mật khẩu. Lịch đặt được lưu bằng AsyncStorage trên thiết bị/trình duyệt; demo không xác thực danh tính và không đồng bộ giữa các thiết bị. Dữ liệu 6 phòng là minh họa, không phải inventory chính thức của VKU. Dùng development build hoặc Expo Go tương thích SDK của dự án để kiểm tra native; không cài ngẫu nhiên các phiên bản Expo package khác SDK.
+Mặc định là **demo cục bộ**. Dùng email mẫu để vào ứng dụng, không cần mật khẩu. Lịch đặt được lưu bằng AsyncStorage trên thiết bị/trình duyệt; demo không xác thực danh tính và không đồng bộ giữa các thiết bị. Dữ liệu 6 phòng là minh họa, không phải inventory chính thức của VKU.
+
+Google Sign-In dùng module native nên cần **development build**, không chạy trong Expo Go. Cài APK Android tại `artifacts/StudySpace-development-arm64.apk`, sau đó chạy Metro khi máy tính và điện thoại chung mạng:
+
+```sh
+npm run start:dev-client
+```
+
+Mở StudySpace trên điện thoại và chọn server hiện trong development launcher. Nếu đã bật USB debugging, có thể cài APK bằng `adb install -r artifacts/StudySpace-development-arm64.apk`. Expo Go vẫn dùng được cho luồng email/password vì mã Google native chỉ được nạp khi bấm nút Google.
 
 ## Phạm vi đã triển khai
 
-- Email/password với Firebase hoặc đăng nhập demo được gắn nhãn rõ.
+- Email/password và Google Sign-In với Firebase; chế độ demo được gắn nhãn rõ.
 - Native Stack + 4 Bottom Tabs: Khám phá, Lịch của tôi, Yêu thích, Tài khoản.
 - FlatList, tìm kiếm không dấu, lọc kết hợp tòa nhà/sức chứa/thiết bị.
 - 7 ngày theo lịch Việt Nam, 4 khung giờ 2 tiếng, cập nhật realtime theo phòng/ngày.
@@ -33,8 +41,8 @@ QR hiện là vé tham chiếu, **chưa có scanner/verifier/check-in**. Favorit
 
 ## Firebase / chạy hai thiết bị thật
 
-1. Tạo Firebase project development, bật Email/Password trong Authentication, tạo Firestore.
-2. Copy `.env.example` thành `.env`; đặt `EXPO_PUBLIC_BACKEND=firebase` và 4 giá trị cấu hình Firebase web app. Đây là public client config; không đặt service-account/private key trong app.
+1. Tạo Firebase project development, bật Email/Password và Google trong Authentication, tạo Firestore.
+2. Copy `.env.example` thành `.env`; đặt `EXPO_PUBLIC_BACKEND=firebase`, cấu hình Firebase web app và `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Đây là public client config; không đặt service-account/private key trong app.
 3. `npm ci --prefix firebase/functions` và `npm run build:server`.
 4. `npx firebase login`; deploy: `npx firebase deploy --project YOUR_DEV_PROJECT --only firestore,functions`. Cloud Functions deployment cần project có billing phù hợp. Lệnh này phải do người quản lý project chủ động chạy.
 5. Seed bằng Admin SDK với Application Default Credentials của development project. PowerShell:
@@ -87,6 +95,6 @@ docs/             scope, architecture, demo, verification
 
 ## Giới hạn và bước tiếp theo
 
-Chưa deploy Firebase/EAS, chưa có SSO, quản trị phòng, maintenance blackout, scanner, no-show, remote push, deep links thông báo, export calendar hoặc waitlist. Không tuyên bố production-ready hay FlatList đạt 60fps khi chưa profile trên thiết bị. Notification phải được thử trên Android/iOS thật; web chỉ thông báo rõ giới hạn. Cache không thay thế kết quả transaction server.
+Chưa deploy EAS, chưa có quản trị phòng, maintenance blackout, scanner, no-show, remote push, deep links thông báo, export calendar hoặc waitlist. Không tuyên bố production-ready hay FlatList đạt 60fps khi chưa profile trên thiết bị. Notification phải được thử trên Android/iOS thật; web chỉ thông báo rõ giới hạn. Cache không thay thế kết quả transaction server.
 
 Tham khảo chính thức: [Expo Firebase](https://docs.expo.dev/guides/using-firebase/), [Expo Notifications](https://docs.expo.dev/versions/latest/sdk/notifications/), [Firestore transactions](https://firebase.google.com/docs/firestore/manage-data/transactions).

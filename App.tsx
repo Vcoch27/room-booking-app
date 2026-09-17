@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Image, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -101,8 +101,26 @@ function Navigation() {
             name="Home"
             component={MainTabs}
             options={{
-              title: "StudySpace",
-              headerTitleStyle: { fontWeight: "700" },
+              headerTitle: () => (
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <Image
+                    source={require("./logo.png")}
+                    resizeMode="contain"
+                    style={{ width: 34, height: 34 }}
+                  />
+                  <Text
+                    style={{
+                      color: colors.ink,
+                      fontSize: 18,
+                      fontWeight: "700",
+                    }}
+                  >
+                    StudySpace
+                  </Text>
+                </View>
+              ),
             }}
           />
           <Stack.Screen

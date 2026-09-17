@@ -54,3 +54,26 @@ it("unsubscribes realtime listeners", async () => {
   await repo.create(intent());
   expect(next).toHaveBeenCalledTimes(count);
 });
+it("allows check-in and end-early releasing room availability", async () => {
+  const repo = createDemoRepository();
+  await repo.login("a@example.com", "", false);
+  const booking = await repo.create(intent());
+  expect(booking.status).toBe("CONFIRMED");
+
+  // Mock Date.now to booking slot time
+  const origNow = Date.now;
+  try {
+    Date.now = () => booking.startAt + 5 * 60_000;
+    await repo.checkIn(booking.id);
+
+    // End early
+    await repo.endEarly(booking.id);
+
+    // Once ended early, the slot is freed up for a new booking
+    await expect(
+      repo.create({ ...intent(), idempotencyKey: "after-early-release" }),
+    ).resolves.toMatchObject({ status: "CONFIRMED" });
+  } finally {
+    Date.now = origNow;
+  }
+});

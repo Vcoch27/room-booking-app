@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import Constants from "expo-constants";
 import { useApp } from "../../app/Provider";
 import {
   Button,
@@ -19,21 +26,44 @@ export function Login() {
   const [register, setRegister] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const googleRequiresDevelopmentBuild =
+    Platform.OS !== "web" && Constants.appOwnership === "expo";
   const submit = async () => {
     setError("");
     if (!/^\S+@\S+\.\S+$/.test(email.trim()))
       return setError("Nhập một địa chỉ email hợp lệ.");
-    if (repository.mode === "firebase" && password.length < 8)
-      return setError("Mật khẩu cần ít nhất 8 ký tự.");
+    if (repository.mode === "firebase" && password.length < 6)
+      return setError("Mật khẩu cần ít nhất 6 ký tự.");
     setBusy(true);
     try {
       await repository.login(email, password, register);
-    } catch {
+    } catch (e) {
       setError(
-        "Không thể đăng nhập. Kiểm tra tài khoản, mật khẩu và kết nối; hoặc tạo tài khoản mới.",
+        e instanceof Error
+          ? e.message
+          : "Không thể đăng nhập. Kiểm tra lại thông tin và kết nối mạng.",
       );
     } finally {
       setBusy(false);
+    }
+  };
+
+  const submitGoogle = async () => {
+    setError("");
+    setBusy(true);
+    try {
+      await repository.loginWithGoogle();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không thể đăng nhập Google.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const quickDemoLogin = () => {
+    setEmail("sinhvien@vku.udn.vn");
+    if (repository.mode === "firebase") {
+      setPassword("vku123456");
     }
   };
   return (
@@ -51,8 +81,15 @@ export function Login() {
             alignSelf: "center",
           }}
         >
-          <Ionicons name="shapes-outline" size={40} color={colors.ink} />
-          <Text style={styles.label}>VKU / STUDYSPACE</Text>
+          <Image
+            source={require("../../../logo.png")}
+            accessibilityLabel="VKU StudySpace"
+            resizeMode="contain"
+            style={{ width: 156, height: 156, alignSelf: "center" }}
+          />
+          <Text style={[styles.label, { textAlign: "center" }]}>
+            VKU / STUDYSPACE
+          </Text>
           <Text style={[styles.title, { fontSize: 44 }]}>
             Một chỗ ngồi.{"\n"}Nhiều ý tưởng.
           </Text>
@@ -93,15 +130,86 @@ export function Login() {
               busy={busy}
             />
             {repository.mode === "firebase" && (
-              <Button
-                title={
-                  register
-                    ? "Đã có tài khoản? Đăng nhập"
-                    : "Chưa có tài khoản? Đăng ký"
-                }
-                secondary
-                onPress={() => setRegister(!register)}
-              />
+              <>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <View
+                    style={{ height: 1, flex: 1, backgroundColor: colors.line }}
+                  />
+                  <Text style={styles.muted}>hoặc</Text>
+                  <View
+                    style={{ height: 1, flex: 1, backgroundColor: colors.line }}
+                  />
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Tiếp tục với Google"
+                  accessibilityState={{
+                    disabled: busy || googleRequiresDevelopmentBuild,
+                    busy,
+                  }}
+                  disabled={busy || googleRequiresDevelopmentBuild}
+                  onPress={submitGoogle}
+                  style={({ pressed }) => ({
+                    minHeight: 50,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.line,
+                    backgroundColor: colors.white,
+                    opacity:
+                      busy || googleRequiresDevelopmentBuild
+                        ? 0.5
+                        : pressed
+                          ? 0.75
+                          : 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 12,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: "800",
+                      color: "#4285F4",
+                    }}
+                  >
+                    G
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.ink,
+                      fontWeight: "700",
+                      fontSize: 15,
+                    }}
+                  >
+                    Tiếp tục với Google
+                  </Text>
+                </Pressable>
+                {googleRequiresDevelopmentBuild && (
+                  <Notice text="Đăng nhập Google cần bản development build. Email/mật khẩu vẫn dùng được trong Expo Go." />
+                )}
+                <Button
+                  title={
+                    register
+                      ? "Đã có tài khoản? Đăng nhập"
+                      : "Chưa có tài khoản? Đăng ký"
+                  }
+                  secondary
+                  onPress={() => setRegister(!register)}
+                />
+                <Button
+                  title="Điền nhanh tài khoản mẫu VKU"
+                  secondary
+                  onPress={quickDemoLogin}
+                />
+              </>
             )}
           </View>
           {repository.mode === "demo" && (

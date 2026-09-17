@@ -49,6 +49,9 @@ export function createDemoRepository(): Repository {
       };
       sessions.forEach((fn) => fn(session));
     },
+    async loginWithGoogle() {
+      throw new Error("Đăng nhập Google chỉ khả dụng khi dùng Firebase.");
+    },
     async logout() {
       session = null;
       sessions.forEach((fn) => fn(null));
@@ -74,7 +77,7 @@ export function createDemoRepository(): Repository {
               (b) =>
                 b.roomId === roomId &&
                 b.date === date &&
-                b.status === "CONFIRMED",
+                (b.status === "CONFIRMED" || b.status === "CHECKED_IN"),
             )
             .map((b) => ({ roomId, date, slotId: b.slotId, bookingId: b.id })),
           stale: false,
@@ -105,7 +108,7 @@ export function createDemoRepository(): Repository {
         if (
           records.some(
             (b) =>
-              b.status === "CONFIRMED" &&
+              (b.status === "CONFIRMED" || b.status === "CHECKED_IN") &&
               lockId(b.roomId, b.date, b.slotId) ===
                 lockId(intent.roomId, intent.date, intent.slotId),
           )
@@ -144,6 +147,55 @@ export function createDemoRepository(): Repository {
           throw new Error("Không thể hủy lịch đã bắt đầu.");
         const updated = records.map((b) =>
           b.id === id ? { ...b, status: "CANCELLED" as const } : b,
+        );
+        await AsyncStorage.setItem(
+          "studyspace-demo-bookings-v1",
+          JSON.stringify(updated),
+        );
+        records = updated;
+        emit();
+      });
+    },
+    checkIn(id) {
+      const user = session;
+      return atomic(async () => {
+        const booking = records.find((b) => b.id === id);
+        if (!booking || booking.userId !== user?.uid)
+          throw new Error("Không có quyền điểm danh cho lịch này.");
+        if (booking.status !== "CONFIRMED")
+          throw new Error("Chỉ có thể check-in cho lịch đã xác nhận.");
+        const now = Date.now();
+        if (now < booking.startAt - 15 * 60_000)
+          throw new Error(
+            "Chưa đến giờ check-in (mở trước giờ bắt đầu 15 phút).",
+          );
+        if (now > booking.endAt) throw new Error("Lịch đặt đã kết thúc.");
+        const updated = records.map((b) =>
+          b.id === id
+            ? { ...b, status: "CHECKED_IN" as const, checkedInAt: now }
+            : b,
+        );
+        await AsyncStorage.setItem(
+          "studyspace-demo-bookings-v1",
+          JSON.stringify(updated),
+        );
+        records = updated;
+        emit();
+      });
+    },
+    endEarly(id) {
+      const user = session;
+      return atomic(async () => {
+        const booking = records.find((b) => b.id === id);
+        if (!booking || booking.userId !== user?.uid)
+          throw new Error("Không có quyền kết thúc lịch này.");
+        if (booking.status !== "CONFIRMED" && booking.status !== "CHECKED_IN")
+          throw new Error("Lịch này không ở trạng thái đang sử dụng.");
+        const now = Date.now();
+        const updated = records.map((b) =>
+          b.id === id
+            ? { ...b, status: "COMPLETED" as const, endedAt: now }
+            : b,
         );
         await AsyncStorage.setItem(
           "studyspace-demo-bookings-v1",

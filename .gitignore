@@ -1,6 +1,8 @@
 node_modules/
 .expo/
 .expo-scaffold/
+/android/
+/ios/
 dist/
 coverage/
 firebase/functions/lib/

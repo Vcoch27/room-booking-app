@@ -10,8 +10,10 @@ import {
   Empty,
   Notice,
   Screen,
+  colors,
   styles,
 } from "../../components/ui";
+import { RoomImage } from "../../components/RoomImage";
 import { SLOTS, SlotLock, bookingDays, slotTimes } from "../../domain/model";
 import { useDraft } from "../../stores/draft";
 export function Detail({
@@ -91,6 +93,9 @@ export function Detail({
     (slotId && slotTimes(date, slotId).startAt <= now);
   return (
     <Screen>
+      {/* Big Hero Room Image */}
+      <RoomImage room={room} height={200} style={{ marginBottom: 6 }} />
+
       <Text style={styles.label}>
         {room.kind === "lab" ? "COMPUTER LAB" : "STUDY ROOM"} /{" "}
         {room.id.toUpperCase()}
@@ -101,12 +106,29 @@ export function Detail({
       </Text>
       <Text style={styles.muted}>{room.description}</Text>
       <View style={styles.card}>
-        <Text style={styles.heading}>Sẵn sàng cho buổi học</Text>
-        {room.equipment.map((e) => (
-          <Text key={e} style={styles.text}>
-            ✓ {e}
-          </Text>
-        ))}
+        <Text style={styles.heading}>Trang thiết bị & Tiện nghi</Text>
+        <View style={[styles.row, { gap: 8 }]}>
+          {room.equipment.map((e) => (
+            <View
+              key={e}
+              style={{
+                backgroundColor: colors.soft,
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Text
+                style={{ color: colors.ink, fontWeight: "600", fontSize: 13 }}
+              >
+                ✓ {e}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
       <Text style={styles.heading}>01 / Chọn ngày</Text>
       <Text style={styles.muted}>7 ngày tới · Giờ Việt Nam (UTC+7)</Text>
