@@ -234,7 +234,6 @@ export function createFirebaseRepository(): Repository {
             date: intent.date,
             slotId: intent.slotId,
             bookingId,
-            userId: user.uid,
             createdAt: Date.now(),
           });
 

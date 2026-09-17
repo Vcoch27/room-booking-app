@@ -17,7 +17,7 @@ import {
   connectFunctionsEmulator,
   httpsCallable,
 } from "firebase/functions";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, runTransaction } from "firebase/firestore";
 import { Booking, BookingIntent, bookingDays } from "../src/domain/model";
 import { seedRooms } from "../src/domain/rooms";
 describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)(
@@ -125,6 +125,59 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)(
         clients[0].create(intent("b201", "overlap-b", 2)),
       ]);
       expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    });
+    it("allows an owner to create and cancel an atomic client booking", async () => {
+      const uid = clients[0].uid;
+      const db = env.authenticatedContext(uid).firestore();
+      const date = bookingDays()[4];
+      const roomId = "b401";
+      const slotId = "1530_1730";
+      const bookingId = `${uid}__rules-direct`;
+      const slotKey = `${roomId}__${date}__${slotId}`;
+      const bookingRef = doc(db, "bookings", bookingId);
+      const slotRef = doc(db, "roomSlots", slotKey);
+
+      await assertSucceeds(
+        runTransaction(db, async (tx) => {
+          expect((await tx.get(bookingRef)).exists()).toBe(false);
+          expect((await tx.get(slotRef)).exists()).toBe(false);
+          const room = await tx.get(doc(db, "rooms", roomId));
+          expect(room.exists()).toBe(true);
+          const startAt = Date.now() + 86_400_000;
+          tx.set(bookingRef, {
+            id: bookingId,
+            userId: uid,
+            roomId,
+            roomName: room.get("name"),
+            date,
+            slotId,
+            startAt,
+            endAt: startAt + 7_200_000,
+            status: "CONFIRMED",
+            passToken: "rules-test-pass-token",
+            createdAt: Date.now(),
+          });
+          tx.set(slotRef, {
+            roomId,
+            date,
+            slotId,
+            bookingId,
+            createdAt: Date.now(),
+          });
+        }),
+      );
+
+      await assertSucceeds(
+        runTransaction(db, async (tx) => {
+          expect((await tx.get(bookingRef)).exists()).toBe(true);
+          expect((await tx.get(slotRef)).exists()).toBe(true);
+          tx.delete(slotRef);
+          tx.update(bookingRef, {
+            status: "CANCELLED",
+            cancelledAt: Date.now(),
+          });
+        }),
+      );
     });
     it("rejects client writes, role escalation and unauthenticated reads", async () => {
       const db = env.authenticatedContext(clients[0].uid).firestore();
