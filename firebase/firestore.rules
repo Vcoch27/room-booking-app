@@ -1,0 +1,241 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed data model
+// ===============================================================
+// rooms/{roomId}: server-managed room catalogue.
+// bookings/{uid}__{idempotencyKey}: owner booking with immutable identity,
+// room, schedule, pass-token, and creation fields; only lifecycle status and
+// its matching timestamp may change.
+// roomSlots/{roomId}__{YYYY-MM-DD}__{slotId}: availability lock created and
+// deleted atomically with its booking. It contains no user identifier.
+// users/{uid}/favorites/{roomId}: owner-only room favorite.
+// userGuards and bookingEvents: server/Admin SDK only.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function uidUnchanged(data) {
+      return data.userId == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    function validDate(value) {
+      return value is string
+        && value.size() == 10
+        && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validSlotId(value) {
+      return value in [
+        '0730_0930',
+        '0930_1130',
+        '1330_1530',
+        '1530_1730'
+      ];
+    }
+
+    function ownsBookingId(bookingId) {
+      return isAuthenticated()
+        && bookingId.matches('^' + request.auth.uid + '__[A-Za-z0-9-]{1,128}$');
+    }
+
+    function validBooking(data, bookingId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'roomId', 'roomName', 'date', 'slotId', 'startAt',
+          'endAt', 'status', 'passToken', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'roomId', 'roomName', 'date', 'slotId', 'startAt',
+          'endAt', 'status', 'passToken', 'createdAt', 'cancelledAt',
+          'checkedInAt', 'endedAt'
+        ])
+        && data.id == bookingId
+        && data.userId is string
+        && data.userId.size() >= 1
+        && data.userId.size() <= 128
+        && data.roomId is string
+        && data.roomId.size() >= 1
+        && data.roomId.size() <= 64
+        && data.roomName is string
+        && data.roomName.size() >= 1
+        && data.roomName.size() <= 160
+        && validDate(data.date)
+        && validSlotId(data.slotId)
+        && data.startAt is number
+        && data.endAt is number
+        && data.startAt < data.endAt
+        && data.status in ['CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'COMPLETED']
+        && data.passToken is string
+        && data.passToken.size() >= 16
+        && data.passToken.size() <= 128
+        && data.createdAt is number
+        && (!('cancelledAt' in data) || data.cancelledAt is number)
+        && (!('checkedInAt' in data) || data.checkedInAt is number)
+        && (!('endedAt' in data) || data.endedAt is number);
+    }
+
+    function validBookingCreate(data, bookingId) {
+      let slotKey = data.roomId + '__' + data.date + '__' + data.slotId;
+      let room = get(/databases/$(database)/documents/rooms/$(data.roomId));
+      let slotAfter = getAfter(/databases/$(database)/documents/roomSlots/$(slotKey));
+      return validBooking(data, bookingId)
+        && ownsBookingId(bookingId)
+        && uidUnchanged(data)
+        && data.status == 'CONFIRMED'
+        && !('cancelledAt' in data)
+        && !('checkedInAt' in data)
+        && !('endedAt' in data)
+        && room.data.active == true
+        && slotAfter.data.bookingId == bookingId
+        && slotAfter.data.roomId == data.roomId
+        && slotAfter.data.date == data.date
+        && slotAfter.data.slotId == data.slotId;
+    }
+
+    function validBookingUpdate(data, bookingId) {
+      return validBooking(data, bookingId)
+        && uidNotModified()
+        && !data.diff(resource.data).affectedKeys().hasAny([
+          'id', 'userId', 'roomId', 'roomName', 'date', 'slotId', 'startAt',
+          'endAt', 'passToken', 'createdAt'
+        ]);
+    }
+
+    function validBookingTransition() {
+      let data = request.resource.data;
+      let slotKey = data.roomId + '__' + data.date + '__' + data.slotId;
+      let slotExistsAfter = existsAfter(
+        /databases/$(database)/documents/roomSlots/$(slotKey)
+      );
+      return (
+          resource.data.status == 'CONFIRMED'
+          && data.status == 'CHECKED_IN'
+          && data.diff(resource.data).affectedKeys().hasOnly(['status', 'checkedInAt'])
+          && data.checkedInAt is number
+          && slotExistsAfter
+        ) || (
+          resource.data.status == 'CONFIRMED'
+          && data.status == 'CANCELLED'
+          && data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+          && data.cancelledAt is number
+          && !slotExistsAfter
+        ) || (
+          resource.data.status in ['CONFIRMED', 'CHECKED_IN']
+          && data.status == 'COMPLETED'
+          && data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt'])
+          && data.endedAt is number
+          && !slotExistsAfter
+        );
+    }
+
+    function validRoomSlot(data, slotKey) {
+      return data.keys().hasAll([
+          'roomId', 'date', 'slotId', 'bookingId', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'roomId', 'date', 'slotId', 'bookingId', 'createdAt'
+        ])
+        && data.roomId is string
+        && data.roomId.size() >= 1
+        && data.roomId.size() <= 64
+        && validDate(data.date)
+        && validSlotId(data.slotId)
+        && slotKey == data.roomId + '__' + data.date + '__' + data.slotId
+        && data.bookingId is string
+        && data.bookingId.size() >= 4
+        && data.bookingId.size() <= 260
+        && data.createdAt is number;
+    }
+
+    function validRoomSlotCreate(data, slotKey) {
+      let bookingAfter = getAfter(
+        /databases/$(database)/documents/bookings/$(data.bookingId)
+      );
+      return validRoomSlot(data, slotKey)
+        && ownsBookingId(data.bookingId)
+        && bookingAfter.data.userId == request.auth.uid
+        && bookingAfter.data.roomId == data.roomId
+        && bookingAfter.data.date == data.date
+        && bookingAfter.data.slotId == data.slotId
+        && bookingAfter.data.status == 'CONFIRMED';
+    }
+
+    function validFavorite(data, roomId) {
+      return data.keys().hasAll(['roomId', 'addedAt'])
+        && data.keys().hasOnly(['roomId', 'addedAt'])
+        && data.roomId == roomId
+        && data.roomId is string
+        && data.roomId.size() >= 1
+        && data.roomId.size() <= 64
+        && data.addedAt is number;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if ownsBookingId(bookingId)
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow list: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+      allow create: if validBookingCreate(request.resource.data, bookingId);
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && validBookingUpdate(request.resource.data, bookingId)
+        && validBookingTransition();
+      allow delete: if false;
+    }
+
+    match /roomSlots/{slotKey} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && validRoomSlotCreate(request.resource.data, slotKey);
+      allow update: if false;
+      allow delete: if isAuthenticated()
+        && ownsBookingId(resource.data.bookingId)
+        && validRoomSlot(resource.data, slotKey)
+        && getAfter(
+          /databases/$(database)/documents/bookings/$(resource.data.bookingId)
+        ).data.status in ['CANCELLED', 'COMPLETED'];
+    }
+
+    match /users/{userId} {
+      allow read, write: if false;
+
+      match /favorites/{roomId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && validFavorite(request.resource.data, roomId);
+        allow update: if isOwner(userId)
+          && validFavorite(request.resource.data, roomId);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    match /userGuards/{userId} {
+      allow read, write: if false;
+    }
+
+    match /bookingEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

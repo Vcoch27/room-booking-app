@@ -1,6 +1,8 @@
 node_modules/
 .expo/
 .expo-scaffold/
+/android/
+/ios/
 dist/
 coverage/
 firebase/functions/lib/
@@ -12,3 +14,6 @@ firebase/functions/lib/
 *.tsbuildinfo
 artifacts/
 /artifacts-audit.json
+.agents/
+.claude/
+skills-lock.json

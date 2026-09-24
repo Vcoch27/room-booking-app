@@ -1,0 +1,40 @@
+{
+  "functions": [
+    {
+      "source": "firebase/functions",
+      "codebase": "default",
+      "predeploy": ["npm --prefix firebase/functions run build"]
+    }
+  ],
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-northeast1",
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "auth": {
+    "authorizedDomains": ["localhost"],
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "VKU StudySpace",
+        "supportEmail": "hoangtungmy123@gmail.com"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "StudySpace",
+    "slug": "vku-studyspace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./logo.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vcoch27.studyspace",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "package": "com.vcoch27.studyspace",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "backgroundColor": "#F5F6F0",
+        "foregroundImage": "./logo.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./logo.png"
+    },
+    "scheme": "studyspace",
+    "plugins": [
+      "expo-notifications",
+      "expo-font",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./logo.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#F5F6F0",
+          "dark": {
+            "backgroundColor": "#F5F6F0"
+          }
+        }
+      ]
+    ]
+  }
+}

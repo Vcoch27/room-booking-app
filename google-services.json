@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "749230055118",
+    "project_id": "vcoch27-study-space",
+    "storage_bucket": "vcoch27-study-space.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749230055118:android:d08c765a73fd0728faba9f",
+        "android_client_info": {
+          "package_name": "com.vcoch27.studyspace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "749230055118-oqepr369ldpjqnlsvri7ur9ogbhr8l9e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vcoch27.studyspace",
+            "certificate_hash": "39c63e379f2b25a5487f4198a8f63f88456645c3"
+          }
+        },
+        {
+          "client_id": "749230055118-e3cdsrnggcnhca7s6ji64jma7s11tmf6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXLVfpFzur6wsbM9JZdeFy4C-baOEGQeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "749230055118-e3cdsrnggcnhca7s6ji64jma7s11tmf6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "749230055118-van1vrtrf5jctvfq354lb7imavvb8udn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.vcoch27.studyspace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
