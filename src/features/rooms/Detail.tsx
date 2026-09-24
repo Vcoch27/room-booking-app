@@ -13,7 +13,7 @@ import {
   colors,
   styles,
 } from "../../components/ui";
-import { RoomImage } from "../../components/RoomImage";
+import { RoomGallery } from "../../components/RoomGallery";
 import { SLOTS, SlotLock, bookingDays, slotTimes } from "../../domain/model";
 import { useDraft } from "../../stores/draft";
 export function Detail({
@@ -94,7 +94,7 @@ export function Detail({
   return (
     <Screen>
       {/* Big Hero Room Image */}
-      <RoomImage room={room} height={200} style={{ marginBottom: 6 }} />
+      <RoomGallery key={room.id} room={room} />
 
       <Text style={styles.label}>
         {room.kind === "lab" ? "COMPUTER LAB" : "STUDY ROOM"} /{" "}

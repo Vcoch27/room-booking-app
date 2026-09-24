@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Room } from "../domain/model";
 import { colors } from "./ui";
+import { roomPhotos } from "../domain/roomPhotos";
 
 interface RoomImageProps {
   room: Room;
@@ -26,16 +27,22 @@ export const RoomImage = React.memo(function RoomImage({
 }: RoomImageProps) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const photos = roomPhotos(room);
+  const uri = photos[0];
+  useEffect(() => {
+    setError(false);
+    setLoaded(false);
+  }, [uri]);
 
   const isLab = room.kind === "lab";
-  const showImage = !error && Boolean(room.imageUrl);
+  const showImage = !error && Boolean(uri);
 
   return (
     <View style={[styles.container, { height }, style]}>
       {showImage ? (
         <>
           <Image
-            source={{ uri: room.imageUrl }}
+            source={{ uri }}
             style={[styles.image, imageStyle]}
             resizeMode="cover"
             onLoad={() => setLoaded(true)}
@@ -86,6 +93,11 @@ export const RoomImage = React.memo(function RoomImage({
       )}
 
       {/* Building Badge Overlay */}
+      {photos.length > 1 && (
+        <View style={[styles.badge, { top: undefined, bottom: 10 }]}>
+          <Text style={styles.badgeText}>{photos.length} ảnh</Text>
+        </View>
+      )}
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{room.building}</Text>
       </View>

@@ -11,6 +11,7 @@ export type Room = {
   description: string;
   active: boolean;
   imageUrl?: string;
+  imageUrls?: string[];
   imageKey?: string;
 };
 export type Session = { uid: string; email: string };
