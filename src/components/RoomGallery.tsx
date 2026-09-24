@@ -11,10 +11,13 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Room } from "../domain/model";
 import { roomPhotos } from "../domain/roomPhotos";
 import { RoomImage } from "./RoomImage";
+import { useGalleryKeys } from "../hooks/useGalleryKeys";
 import { colors } from "./ui";
 
 function Photo({
@@ -80,17 +83,21 @@ export function RoomGallery({ room }: { room: Room }) {
   const [previewWidth, setPreviewWidth] = useState(1);
   const [viewerHeight, setViewerHeight] = useState(1);
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const list = useRef<FlatList<string>>(null);
   const index = Math.min(selected, Math.max(0, photos.length - 1));
   const move = (next: number) => {
     setSelected(next);
     list.current?.scrollToOffset({ offset: next * width, animated: true });
   };
+  useGalleryKeys(opened, index, photos.length, move, () => setOpened(false));
   if (!photos.length) return <RoomImage room={room} height={220} />;
   return (
     <View style={{ gap: 10 }}>
       {room.imagesAreIllustrative && (
-        <Text style={{ color: colors.muted, fontSize: 12 }}>Ảnh minh họa không gian · Chưa phải ảnh chụp thực tế của phòng</Text>
+        <Text style={{ color: colors.muted, fontSize: 12 }}>
+          Ảnh minh họa không gian · Chưa phải ảnh chụp thực tế của phòng
+        </Text>
       )}
       <Pressable
         onLayout={(event) => setPreviewWidth(event.nativeEvent.layout.width)}
@@ -137,10 +144,24 @@ export function RoomGallery({ room }: { room: Room }) {
       <Modal
         visible={opened}
         animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => setOpened(false)}
       >
-        <SafeAreaView style={s.viewer}>
-          <View style={s.toolbar}>
+        {/* Dark fullscreen backdrop — không dùng SafeAreaView ở đây vì
+            Modal với statusBarTranslucent cần tính insets thủ công */}
+        <View style={[s.viewer]}>
+          {/* ── TOP TOOLBAR: padding = Dynamic Island / notch ── */}
+          <View
+            style={[
+              s.toolbar,
+              {
+                paddingTop: insets.top + 8,
+                paddingBottom: 8,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+              },
+            ]}
+          >
             <Text numberOfLines={2} style={[s.white, { flex: 1 }]}>
               {room.name}
             </Text>
@@ -153,6 +174,8 @@ export function RoomGallery({ room }: { room: Room }) {
               <Text style={s.white}>Đóng ✕</Text>
             </Pressable>
           </View>
+
+          {/* ── PHOTO VIEWER (fills remaining space) ── */}
           <View
             style={{ flex: 1 }}
             onLayout={(event) =>
@@ -181,7 +204,9 @@ export function RoomGallery({ room }: { room: Room }) {
                       0,
                       Math.min(
                         photos.length - 1,
-                        Math.round(event.nativeEvent.contentOffset.x / width),
+                        Math.round(
+                          event.nativeEvent.contentOffset.x / width,
+                        ),
                       ),
                     ),
                   )
@@ -201,7 +226,19 @@ export function RoomGallery({ room }: { room: Room }) {
               />
             )}
           </View>
-          <View style={s.toolbar}>
+
+          {/* ── BOTTOM TOOLBAR: padding = home indicator ── */}
+          <View
+            style={[
+              s.toolbar,
+              {
+                paddingTop: 8,
+                paddingBottom: insets.bottom + 8,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+              },
+            ]}
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Ảnh trước"
@@ -227,7 +264,7 @@ export function RoomGallery({ room }: { room: Room }) {
               <Text style={s.white}>Sau →</Text>
             </Pressable>
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
     </View>
   );

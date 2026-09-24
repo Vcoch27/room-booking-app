@@ -1,4 +1,13 @@
-import React, { memo } from "react";
+import Animated, {
+  FadeInDown,
+  LinearTransition,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from "react-native-reanimated";
+import React, { memo, useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Room } from "../../domain/model";
@@ -17,16 +26,32 @@ export const RoomCard = memo(function RoomCard({
   onFavorite: (id: string) => void;
 }) {
   const isLab = room.kind === "lab";
+  const heartScale = useSharedValue(1);
+  const heartStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+  }));
+
+  const handleFavorite = useCallback(() => {
+    heartScale.value = withSequence(
+      withSpring(1.4, { damping: 8, stiffness: 400 }),
+      withSpring(1, { damping: 10, stiffness: 300 }),
+    );
+    onFavorite(room.id);
+  }, [heartScale, onFavorite, room.id]);
 
   return (
-    <View style={[styles.card, cardStyles.cardContainer]}>
+    <Animated.View
+      entering={FadeInDown.duration(240).reduceMotion(ReduceMotion.System)}
+      layout={LinearTransition.duration(200).reduceMotion(ReduceMotion.System)}
+      style={[styles.card, cardStyles.cardContainer]}
+    >
       {/* Room Image with Badges */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Xem chi tiết ${room.name}`}
         onPress={() => onOpen(room.id)}
       >
-        <RoomImage room={room} height={155} />
+        <RoomImage room={room} height={190} />
       </Pressable>
 
       {/* Header Info: Kind & Favorite Button */}
@@ -43,18 +68,20 @@ export const RoomCard = memo(function RoomCard({
         </View>
 
         <Pressable
-          onPress={() => onFavorite(room.id)}
+          onPress={handleFavorite}
           accessibilityRole="button"
           accessibilityLabel={favorite ? "Bỏ yêu thích" : "Yêu thích phòng"}
           accessibilityState={{ selected: favorite }}
           style={cardStyles.favoriteButton}
           hitSlop={8}
         >
-          <Ionicons
-            name={favorite ? "heart" : "heart-outline"}
-            size={22}
-            color={favorite ? "#D32F2F" : colors.muted}
-          />
+          <Animated.View style={heartStyle}>
+            <Ionicons
+              name={favorite ? "heart" : "heart-outline"}
+              size={22}
+              color={favorite ? "#D32F2F" : colors.muted}
+            />
+          </Animated.View>
         </Pressable>
       </View>
 
@@ -99,7 +126,7 @@ export const RoomCard = memo(function RoomCard({
           </View>
         </View>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 });
 

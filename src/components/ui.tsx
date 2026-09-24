@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -11,6 +11,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+
 export const colors = {
   ink: "#173D35",
   muted: "#596C64",
@@ -75,12 +88,22 @@ export const styles = StyleSheet.create({
 export function Screen({
   children,
   scroll = true,
+  edges,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
+  /** Which edges to apply safe-area insets to.
+   *  - Tab screens: use ["top"] (tab bar handles bottom)
+   *  - Stack screens: use ["bottom"] (header handles top)
+   *  - Login/standalone: use ["top","bottom","left","right"] (default)
+   */
+  edges?: import("react-native-safe-area-context").Edge[];
 }) {
   return (
-    <SafeAreaView style={styles.screen} edges={["left", "right"]}>
+    <SafeAreaView
+      style={styles.screen}
+      edges={edges ?? ["top", "bottom", "left", "right"]}
+    >
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -109,41 +132,56 @@ export function Button({
   busy?: boolean;
   danger?: boolean;
 }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || busy, busy }}
-      onPress={onPress}
-      disabled={disabled || busy}
-      style={({ pressed }) => ({
-        minHeight: 50,
-        padding: 14,
-        borderRadius: 12,
-        backgroundColor: secondary
-          ? colors.soft
-          : danger
-            ? colors.danger
-            : colors.ink,
-        opacity: disabled || busy ? 0.5 : pressed ? 0.75 : 1,
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "row",
-        gap: 10,
-      })}
+    <Animated.View
+      style={animStyle}
+      layout={LinearTransition.duration(160).reduceMotion(ReduceMotion.System)}
     >
-      {busy && (
-        <ActivityIndicator color={secondary ? colors.ink : colors.white} />
-      )}
-      <Text
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || busy, busy }}
+        onPress={onPress}
+        disabled={disabled || busy}
+        onPressIn={() => {
+          scale.value = withSpring(0.96, { damping: 12, stiffness: 280 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 12, stiffness: 280 });
+        }}
         style={{
-          fontSize: 15,
-          fontWeight: "700",
-          color: secondary ? colors.ink : colors.white,
+          minHeight: 50,
+          padding: 14,
+          borderRadius: 12,
+          backgroundColor: secondary
+            ? colors.soft
+            : danger
+              ? colors.danger
+              : colors.ink,
+          opacity: disabled || busy ? 0.5 : 1,
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "row",
+          gap: 10,
         }}
       >
-        {title}
-      </Text>
-    </Pressable>
+        {busy && (
+          <ActivityIndicator color={secondary ? colors.ink : colors.white} />
+        )}
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: "700",
+            color: secondary ? colors.ink : colors.white,
+          }}
+        >
+          {title}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 export function Chip({
@@ -157,33 +195,48 @@ export function Chip({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
-      style={{
-        minHeight: 44,
-        paddingHorizontal: 14,
-        paddingVertical: 11,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: selected ? colors.ink : colors.line,
-        backgroundColor: selected ? colors.ink : colors.white,
-        opacity: disabled ? 0.5 : 1,
-      }}
+    <Animated.View
+      style={animStyle}
+      layout={LinearTransition.duration(160).reduceMotion(ReduceMotion.System)}
     >
-      <Text
+      <Pressable
+        onPress={onPress}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityState={{ selected, disabled }}
+        onPressIn={() => {
+          scale.value = withSpring(0.93, { damping: 14, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 14, stiffness: 300 });
+        }}
         style={{
-          color: selected ? colors.white : colors.ink,
-          fontWeight: "600",
+          minHeight: 44,
+          paddingHorizontal: 14,
+          paddingVertical: 11,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: selected ? colors.ink : colors.line,
+          backgroundColor: selected ? colors.ink : colors.white,
+          opacity: disabled ? 0.5 : 1,
         }}
       >
-        {selected ? "✓ " : ""}
-        {label}
-      </Text>
-    </Pressable>
+        <Text
+          style={{
+            color: selected ? colors.white : colors.ink,
+            fontWeight: "600",
+          }}
+        >
+          {selected ? "✓ " : ""}
+          {label}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
@@ -208,7 +261,11 @@ export function Notice({
 }) {
   if (!text) return null;
   return (
-    <View
+    <Animated.View
+      key={text}
+      entering={FadeIn.duration(260).reduceMotion(ReduceMotion.System)}
+      exiting={FadeOut.duration(200).reduceMotion(ReduceMotion.System)}
+      layout={LinearTransition.duration(200).reduceMotion(ReduceMotion.System)}
       accessibilityRole={error ? "alert" : "text"}
       style={{
         backgroundColor: error ? "#FCECEE" : colors.soft,
@@ -231,15 +288,47 @@ export function Notice({
       >
         {text}
       </Text>
-    </View>
+    </Animated.View>
   );
 }
 export function Empty({ title, text }: { title: string; text: string }) {
   return (
-    <View style={{ paddingVertical: 36, gap: 12 }}>
+    <Animated.View
+      entering={FadeIn.duration(320).reduceMotion(ReduceMotion.System)}
+      style={{ paddingVertical: 36, gap: 12 }}
+    >
       <Ionicons name="leaf-outline" size={36} color={colors.muted} />
       <Text style={styles.heading}>{title}</Text>
       <Text style={styles.muted}>{text}</Text>
-    </View>
+    </Animated.View>
+  );
+}
+/** Shimmer skeleton placeholder for loading states */
+export function SkeletonBox({
+  height = 220,
+  borderRadius = 20,
+}: {
+  height?: number;
+  borderRadius?: number;
+}) {
+  const opacity = useSharedValue(1);
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.4, { duration: 800 }),
+        withTiming(1, { duration: 800 }),
+      ),
+      -1,
+      true,
+    );
+  }, [opacity]);
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  return (
+    <Animated.View
+      style={[
+        animStyle,
+        { height, backgroundColor: colors.soft, borderRadius },
+      ]}
+    />
   );
 }

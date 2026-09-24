@@ -1,12 +1,18 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
+  useWindowDimensions,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import Animated, {
+  FadeInDown,
+  LinearTransition,
+  ReduceMotion,
+} from "react-native-reanimated";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +25,7 @@ import {
   Field,
   Notice,
   Screen,
+  SkeletonBox,
   colors,
   styles,
 } from "../../components/ui";
@@ -29,6 +36,9 @@ import { RoomCard } from "./RoomCard";
 const BUILDINGS = ["", "Tòa A", "Tòa B", "Tòa C", "Tòa V"];
 
 export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
+  const { width } = useWindowDimensions();
+  const availableWidth = width >= 1100 ? width - 210 : width;
+  const columns = availableWidth >= 1100 ? 3 : availableWidth >= 680 ? 2 : 1;
   const { rooms, loading, online, stale, error, retry, repository } = useApp();
   const filters = usePreferences((s) => s.filters);
   const setFilters = usePreferences((s) => s.setFilters);
@@ -62,14 +72,16 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
 
   const renderItem = useCallback(
     ({ item }: { item: Room }) => (
-      <RoomCard
-        room={item}
-        onOpen={open}
-        favorite={favorites.includes(item.id)}
-        onFavorite={toggleFavorite}
-      />
+      <View style={{ width: `${100 / columns}%`, paddingHorizontal: 8 }}>
+        <RoomCard
+          room={item}
+          onOpen={open}
+          favorite={favorites.includes(item.id)}
+          onFavorite={toggleFavorite}
+        />
+      </View>
     ),
-    [open, favorites, toggleFavorite],
+    [open, favorites, toggleFavorite, columns],
   );
 
   const activeFilterCount =
@@ -79,13 +91,18 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
     (filters.search.trim() ? 1 : 0);
 
   return (
-    <Screen scroll={false}>
+    <Screen scroll={false} edges={["top", "left", "right"]}>
       <FlatList
+        key={columns}
+        numColumns={columns}
         data={data}
         renderItem={renderItem}
         keyExtractor={(r) => r.id}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { maxWidth: 1380, paddingHorizontal: width < 600 ? 12 : 24 },
+        ]}
         refreshing={loading}
         onRefresh={retry}
         initialNumToRender={6}
@@ -113,7 +130,9 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
                 <Text style={[styles.muted, { fontSize: 12 }]}>
                   {repository.mode === "demo"
                     ? "Demo cục bộ"
-                    : "Firebase Realtime"}
+                    : online && !stale
+                      ? "Đã đồng bộ"
+                      : "Đang kết nối"}
                 </Text>
               </View>
             </View>
@@ -134,19 +153,39 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
             )}
 
             {/* Hero Card */}
-            <View style={feedStyles.heroCard}>
+            <Animated.View
+              entering={FadeInDown.duration(400)
+                .springify()
+                .reduceMotion(ReduceMotion.System)}
+              layout={LinearTransition.duration(200).reduceMotion(
+                ReduceMotion.System,
+              )}
+              style={feedStyles.heroCard}
+            >
               <Text style={feedStyles.heroPre}>KHÔNG GIAN CHO Ý TƯỞNG</Text>
               <Text
-                style={[styles.title, { color: colors.white, fontSize: 32 }]}
+                style={[
+                  styles.title,
+                  { color: colors.white, fontSize: width >= 900 ? 46 : 32 },
+                ]}
               >
                 {favoritesOnly
                   ? "Góc học quen thuộc."
                   : "Hôm nay,\nbạn học ở đâu?"}
               </Text>
               <Text style={{ color: "#DDE6DA", lineHeight: 22, fontSize: 14 }}>
-                20 phòng học nhóm & phòng máy hiện đại tại 4 tòa nhà VKU.
+                {rooms.filter((room) => room.active).length} phòng học nhóm &
+                phòng máy tại{" "}
+                {
+                  new Set(
+                    rooms
+                      .filter((room) => room.active)
+                      .map((room) => room.building),
+                  ).size
+                }{" "}
+                tòa nhà VKU.
               </Text>
-            </View>
+            </Animated.View>
 
             {/* Sync / Cache Stale Alert */}
             {online && stale && (
@@ -205,7 +244,15 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
 
             {/* Expanded Advanced Filters */}
             {expanded && (
-              <View style={[styles.card, { gap: 14 }]}>
+              <Animated.View
+                entering={FadeInDown.duration(280)
+                  .springify()
+                  .reduceMotion(ReduceMotion.System)}
+                layout={LinearTransition.duration(220).reduceMotion(
+                  ReduceMotion.System,
+                )}
+                style={[styles.card, { gap: 14 }]}
+              >
                 <Text style={[styles.heading, { fontSize: 16 }]}>
                   Bộ lọc nâng cao
                 </Text>
@@ -249,7 +296,7 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
                 </View>
 
                 <Button title="Xóa tất cả bộ lọc" secondary onPress={reset} />
-              </View>
+              </Animated.View>
             )}
           </View>
         }
@@ -260,21 +307,17 @@ export function Feed({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
               style={{ gap: 14 }}
             >
               {[1, 2, 3].map((i) => (
-                <View
-                  key={i}
-                  style={{
-                    height: 220,
-                    backgroundColor: colors.soft,
-                    borderRadius: 20,
-                  }}
-                />
+                <SkeletonBox key={i} height={220} borderRadius={20} />
               ))}
             </View>
           ) : (
-            <Empty
-              title="Chưa tìm thấy phòng phù hợp"
-              text="Thử điều chỉnh hoặc xóa bớt tiêu chí lọc để xem thêm các phòng học khác."
-            />
+            <View>
+              <Empty
+                title="Chưa tìm thấy phòng phù hợp"
+                text="Thử điều chỉnh hoặc xóa bớt tiêu chí lọc để xem thêm các phòng học khác."
+              />
+              <Button title="Xóa bộ lọc" secondary onPress={reset} />
+            </View>
           )
         }
       />
