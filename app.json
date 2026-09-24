@@ -6,10 +6,16 @@
     "orientation": "portrait",
     "icon": "./logo.png",
     "userInterfaceStyle": "light",
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#173D35",
+      "iosDisplayInForeground": true
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vcoch27.studyspace",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "icon": "./logo.png"
     },
     "android": {
       "package": "com.vcoch27.studyspace",
@@ -25,7 +31,13 @@
     },
     "scheme": "studyspace",
     "plugins": [
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#173D35"
+        }
+      ],
       "expo-font",
       "@react-native-google-signin/google-signin",
       [

@@ -52,6 +52,7 @@ export function scheduleReminder(booking: Booking): Promise<string> {
         title: "Sắp đến giờ học rồi",
         body: `${booking.roomName} bắt đầu sau 15 phút.`,
         data: { bookingId: booking.id },
+        color: "#173D35",
       },
       trigger: {
         type: n.SchedulableTriggerInputTypes.DATE,
