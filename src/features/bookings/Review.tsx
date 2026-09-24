@@ -1,5 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import React, { useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStack } from "../../app/navigation";
@@ -15,6 +16,8 @@ export function Review({
   navigation,
 }: NativeStackScreenProps<RootStack, "Review">) {
   const { rooms, repository, online } = useApp();
+  const mutation = useMutation({ mutationFn: repository.create });
+  const reminders = usePreferences((s) => s.reminders);
   const room = rooms.find((r) => r.id === route.params.roomId);
   const slot = SLOTS.find((s) => s.id === route.params.slotId);
   const [busy, setBusy] = useState(false);
@@ -28,7 +31,7 @@ export function Review({
     setBusy(true);
     setError("");
     try {
-      const booking = await repository.create(route.params);
+      const booking = await mutation.mutateAsync(route.params);
       useDraft.getState().clear();
       navigation.replace("Pass", { bookingId: booking.id });
     } catch (e) {
@@ -44,12 +47,12 @@ export function Review({
   };
 
   return (
-    <Screen>
+    <Screen edges={["bottom", "left", "right"]}>
       <Text style={styles.label}>BƯỚC CUỐI CÙNG</Text>
       <Text style={styles.title}>Kiểm tra lịch{"\n"}trước khi đặt.</Text>
       <Text style={styles.muted}>
         Kiểm tra thông tin chi tiết. Chỗ học chỉ được xác nhận chính thức sau
-        khi hệ thống tạo lock thành công.
+        khi bạn nhận được vé đặt phòng.
       </Text>
 
       {room && <RoomImage room={room} height={160} />}
@@ -94,9 +97,11 @@ export function Review({
 
       <Notice
         text={
-          usePreferences((s) => s.reminders)
-            ? "Bạn sẽ được gửi thông báo nhắc trước giờ học 15 phút trên thiết bị này."
-            : "Thông báo nhắc lịch đang tắt. Bạn có thể bật lại trong Tài khoản."
+          Platform.OS === "web"
+            ? "Bạn có thể xem lại vé trong Lịch của tôi. Nhắc lịch tự động được hỗ trợ trên ứng dụng điện thoại."
+            : reminders
+              ? "Bạn sẽ được gửi thông báo nhắc trước giờ học 15 phút trên thiết bị này."
+              : "Thông báo nhắc lịch đang tắt. Bạn có thể bật lại trong Tài khoản."
         }
       />
 

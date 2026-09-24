@@ -103,7 +103,7 @@ export function Pass({
 
   if (!booking)
     return (
-      <Screen>
+      <Screen edges={["bottom", "left", "right"]}>
         <ActivityIndicator color={colors.ink} />
         <Text style={styles.text}>Đang tải vé đặt phòng…</Text>
         <Notice
@@ -134,7 +134,7 @@ export function Pass({
   const slot = SLOTS.find((s) => s.id === booking.slotId);
 
   return (
-    <Screen>
+    <Screen edges={["bottom", "left", "right"]}>
       {/* Header Status Label */}
       <View style={[styles.row, { justifyContent: "space-between" }]}>
         <Text style={styles.label}>

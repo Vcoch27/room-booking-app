@@ -46,7 +46,7 @@ export function Account() {
     }
   };
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <Text style={styles.label}>TÀI KHOẢN</Text>
       <Text style={styles.title}>Chào bạn.</Text>
       <Text style={styles.text}>{session?.email}</Text>

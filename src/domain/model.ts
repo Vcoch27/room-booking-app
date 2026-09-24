@@ -123,9 +123,9 @@ export function filterRooms(rooms: Room[], filters: Filters) {
   return rooms.filter(
     (r) =>
       r.active &&
-      normalize(`${r.name} ${r.building}`).includes(
-        normalize(filters.search.trim()),
-      ) &&
+      normalize(
+        `${r.name} ${r.building} ${r.description} ${r.equipment.join(" ")}`,
+      ).includes(normalize(filters.search.trim())) &&
       (!filters.building || r.building === filters.building) &&
       r.capacity >= filters.capacity &&
       filters.equipment.every((e) => r.equipment.includes(e)),

@@ -26,7 +26,7 @@ export function Bookings() {
         b.endAt > Date.now(),
   );
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <Text style={styles.label}>LỊCH CỦA BẠN</Text>
       <Text style={styles.title}>Dành chỗ cho{"\n"}việc học.</Text>
       <View style={styles.row}>
@@ -59,7 +59,7 @@ export function Bookings() {
             <Button
               title="Khám phá phòng ngay"
               secondary
-              onPress={() => navigation.navigate("Home")}
+              onPress={() => navigation.navigate("Home", { screen: "Explore" })}
             />
           )}
         </View>

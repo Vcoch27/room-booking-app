@@ -1,5 +1,11 @@
 import React from "react";
-import { ActivityIndicator, Image, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -7,7 +13,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { AppProvider, useApp } from "./src/app/Provider";
-import { RootStack } from "./src/app/navigation";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { linking } from "./src/app/linking";
+import { RootStack, MainTabs as MainTabParams } from "./src/app/navigation";
 import { colors, styles } from "./src/components/ui";
 import { Login } from "./src/features/auth/Login";
 import { Feed } from "./src/features/rooms/Feed";
@@ -17,19 +25,36 @@ import { Pass } from "./src/features/bookings/Pass";
 import { Bookings } from "./src/features/bookings/Bookings";
 import { Account } from "./src/features/account/Account";
 const Stack = createNativeStackNavigator<RootStack>();
-const Tabs = createBottomTabNavigator();
+const Tabs = createBottomTabNavigator<MainTabParams>();
 const Favorites = () => <Feed favoritesOnly />;
 function MainTabs() {
+  const { width } = useWindowDimensions();
+  const desktop = width >= 1100;
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarPosition: desktop ? "left" : "bottom",
+        tabBarLabelPosition: desktop ? "beside-icon" : "below-icon",
+        tabBarItemStyle: desktop
+          ? { minHeight: 56, marginVertical: 6, borderRadius: 12 }
+          : undefined,
+        tabBarActiveBackgroundColor: colors.soft,
         tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
           backgroundColor: colors.white,
+          ...(desktop
+            ? { width: 210, paddingTop: 24, paddingHorizontal: 12 }
+            : {}),
           borderTopColor: colors.line,
+          // Let React Navigation handle bottom safe area for home indicator
+          // Don't set height manually — let it auto-size with insets
         },
+        // Prevent tab bar from adding extra top inset (no double-padding with Dynamic Island)
+        tabBarSafeAreaInsets: desktop
+          ? { top: 0, bottom: 0, left: 0, right: 0 }
+          : { top: 0 },
         tabBarIcon: ({ color, size }) => (
           <Ionicons
             color={color}
@@ -42,7 +67,7 @@ function MainTabs() {
                   Favorites: "heart-outline",
                   Account: "person-outline",
                 } as const
-              )[route.name as "Explore"]
+              )[route.name]
             }
           />
         ),
@@ -77,6 +102,11 @@ function Navigation() {
     return <ActivityIndicator style={{ flex: 1 }} color={colors.ink} />;
   return (
     <NavigationContainer
+      linking={linking}
+      documentTitle={{
+        formatter: (options) =>
+          `${options?.title ?? "Khám phá"} · StudySpace VKU`,
+      }}
       theme={{
         ...DefaultTheme,
         colors: {
@@ -167,13 +197,15 @@ class ErrorBoundary extends React.Component<
 }
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <ErrorBoundary>
-        <AppProvider>
-          <Navigation />
-        </AppProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <ErrorBoundary>
+          <AppProvider>
+            <Navigation />
+          </AppProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

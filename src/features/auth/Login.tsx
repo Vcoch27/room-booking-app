@@ -70,11 +70,11 @@ export function Login() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <Screen>
+      <Screen edges={["top", "bottom", "left", "right"]}>
         <View
           style={{
-            paddingTop: 48,
             gap: 24,
             maxWidth: 480,
             width: "100%",
