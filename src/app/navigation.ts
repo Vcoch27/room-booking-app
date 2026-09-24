@@ -1,5 +1,12 @@
+import type { NavigatorScreenParams } from "@react-navigation/native";
+export type MainTabs = {
+  Explore: undefined;
+  Bookings: undefined;
+  Favorites: undefined;
+  Account: undefined;
+};
 export type RootStack = {
-  Home: undefined;
+  Home: NavigatorScreenParams<MainTabs> | undefined;
   Room: { roomId: string };
   Review: {
     roomId: string;

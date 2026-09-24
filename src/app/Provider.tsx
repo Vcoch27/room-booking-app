@@ -1,10 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import NetInfo from "@react-native-community/netinfo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from "@tanstack/react-query";
 import { Booking, Room, Session } from "../domain/model";
 import { Repository } from "../services/repository";
+import { Subscribe } from "../services/firstSnapshot";
 import { createDemoRepository } from "../services/demo";
 import { createFirebaseRepository } from "../services/firebase";
+import { useRealtimeQuery } from "../hooks/useRealtimeQuery";
 
 type State = {
   repository: Repository;
@@ -24,7 +36,7 @@ export const useApp = () => {
   if (!value) throw new Error("Missing Provider");
   return value;
 };
-export function AppProvider({ children }: { children: React.ReactNode }) {
+function DataProvider({ children }: { children: React.ReactNode }) {
   const [repository] = useState(() =>
     process.env.EXPO_PUBLIC_BACKEND === "firebase"
       ? createFirebaseRepository()
@@ -32,98 +44,84 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [online, setOnline] = useState(true);
-  const [stale, setStale] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [revision, setRevision] = useState(0);
   useEffect(
     () =>
-      repository.observeSession((s) => {
-        setSession(s);
+      repository.observeSession((value) => {
+        setSession(value);
         setReady(true);
       }),
     [repository],
   );
   useEffect(
     () =>
-      NetInfo.addEventListener((s) =>
-        setOnline(s.isConnected !== false && s.isInternetReachable !== false),
-      ),
+      NetInfo.addEventListener((state) => {
+        const connected =
+          state.isConnected !== false && state.isInternetReachable !== false;
+        setOnline(connected);
+        onlineManager.setOnline(connected);
+      }),
     [],
   );
-  useEffect(() => {
-    setBookings([]);
-    setRooms([]);
-    setError("");
-    setLoading(true);
-    setStale(true);
-    if (!session) return;
-    let active = true;
-    let receivedRooms = false;
-    let receivedBookings = false;
-    const roomsKey = `rooms-cache:${repository.mode}`;
-    const bookingsKey = `bookings-cache:${repository.mode}:${session.uid}`;
-    void AsyncStorage.multiGet([roomsKey, bookingsKey])
-      .then((values) => {
-        if (!active) return;
-        if (!receivedRooms && values[0][1]) {
-          setRooms(JSON.parse(values[0][1]));
-          setLoading(false);
-        }
-        if (!receivedBookings && values[1][1])
-          setBookings(JSON.parse(values[1][1]));
-      })
-      .catch(() => {});
-    const fail = (e: Error) => {
-      setError(e.message);
-      setLoading(false);
-      setStale(true);
-    };
-    const offRooms = repository.rooms((s) => {
-      receivedRooms = true;
-      setRooms(s.data);
-      setStale(s.stale);
-      setLoading(false);
-      void AsyncStorage.setItem(roomsKey, JSON.stringify(s.data)).catch(
-        () => {},
-      );
-    }, fail);
-    const offBookings = repository.bookings(
-      session.uid,
-      (s) => {
-        receivedBookings = true;
-        setBookings(s.data.sort((a, b) => b.createdAt - a.createdAt));
-        void AsyncStorage.setItem(bookingsKey, JSON.stringify(s.data)).catch(
-          () => {},
-        );
-      },
-      fail,
-    );
-    return () => {
-      active = false;
-      offRooms();
-      offBookings();
-    };
-  }, [repository, session, revision]);
+  const subscribeRooms = useCallback<Subscribe<Room[]>>(
+    (next, fail) => repository.rooms(next, fail),
+    [repository],
+  );
+  const subscribeBookings = useCallback<Subscribe<Booking[]>>(
+    (next, fail) => repository.bookings(session?.uid ?? "", next, fail),
+    [repository, session?.uid],
+  );
+  const rooms = useRealtimeQuery(
+    `rooms-cache:${repository.mode}`,
+    subscribeRooms,
+    !!session,
+    true,
+  );
+  const bookings = useRealtimeQuery(
+    `bookings-cache:${repository.mode}:${session?.uid ?? "signed-out"}`,
+    subscribeBookings,
+    !!session,
+    true,
+  );
   return (
     <Context.Provider
       value={{
         repository,
         session,
         ready,
-        rooms,
-        bookings,
         online,
-        stale,
-        loading,
-        error,
-        retry: () => setRevision((v) => v + 1),
+        rooms: session ? (rooms.data?.data ?? []) : [],
+        bookings: session
+          ? [...(bookings.data?.data ?? [])].sort(
+              (a, b) => b.createdAt - a.createdAt,
+            )
+          : [],
+        stale: rooms.stale,
+        loading: !!session && rooms.isPending,
+        error: (rooms.error ?? bookings.error)?.message ?? "",
+        retry: () => {
+          rooms.retry();
+          bookings.retry();
+        },
       }}
     >
       {children}
     </Context.Provider>
+  );
+}
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [client] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: { gcTime: 5 * 60_000 },
+          mutations: { retry: false },
+        },
+      }),
+  );
+  return (
+    <QueryClientProvider client={client}>
+      <DataProvider>{children}</DataProvider>
+    </QueryClientProvider>
   );
 }
