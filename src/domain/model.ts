@@ -12,6 +12,7 @@ export type Room = {
   active: boolean;
   imageUrl?: string;
   imageUrls?: string[];
+  imagesAreIllustrative?: boolean;
   imageKey?: string;
 };
 export type Session = { uid: string; email: string };

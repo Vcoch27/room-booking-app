@@ -89,6 +89,9 @@ export function RoomGallery({ room }: { room: Room }) {
   if (!photos.length) return <RoomImage room={room} height={220} />;
   return (
     <View style={{ gap: 10 }}>
+      {room.imagesAreIllustrative && (
+        <Text style={{ color: colors.muted, fontSize: 12 }}>Ảnh minh họa không gian · Chưa phải ảnh chụp thực tế của phòng</Text>
+      )}
       <Pressable
         onLayout={(event) => setPreviewWidth(event.nativeEvent.layout.width)}
         accessibilityRole="button"
