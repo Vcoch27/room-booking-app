@@ -414,7 +414,6 @@
             <th>Tỷ trọng</th>
             <th>Yêu cầu bài giảng</th>
             <th>Minh chứng đạt được trong StudySpace VKU</th>
-            <th>Đánh giá</th>
           </tr>
         </thead>
         <tbody>
@@ -423,35 +422,30 @@
             <td>30%</td>
             <td>Tìm kiếm, bộ lọc đa điều kiện, quy trình đặt chỗ trọn vẹn.</td>
             <td>Tìm tiếng Việt không dấu (tên/tòa/tiện nghi/mô tả); kết hợp lọc sức chứa, tiện nghi; chọn ngày & 2-giờ slot, xác nhận review, vé QR, check-in, hủy lịch.</td>
-            <td><span class="badge-score">Excellent (9-10)</span></td>
           </tr>
           <tr>
             <td><strong>UI / UX</strong></td>
             <td>25%</td>
             <td>Giao diện mượt mà, layout animation, tối ưu native gesture.</td>
             <td>Dùng <strong>Reanimated 3</strong> (card <code>FadeInDown</code>, nút bấm scale nhún <code>withSpring</code>, tim nảy <code>withSequence</code>, skeleton shimmer); <strong>Gesture Handler</strong> trên native thread; Responsive 1/2/3 cột; Safe Area cho Dynamic Island & notch.</td>
-            <td><span class="badge-score">Excellent (9-10)</span></td>
           </tr>
           <tr>
             <td><strong>Navigation</strong></td>
             <td>15%</td>
             <td>React Navigation (Stack + Tabs) chiếm 90% cấu trúc, định nghĩa ParamList types chống crash.</td>
             <td>Kết hợp <code>NativeStack</code> + <code>BottomTabs</code>; 100% typed với <code>RootStackParamList</code> và <code>MainTabsParamList</code>; deep linking và đồng bộ URL web (<code>/rooms/:id</code>, <code>/bookings/:id</code>).</td>
-            <td><span class="badge-score">Excellent (9-10)</span></td>
           </tr>
           <tr>
             <td><strong>State Management</strong></td>
             <td>15%</td>
             <td>Tách biệt rõ ràng Zustand (Client State) và TanStack Query (Server State).</td>
             <td><strong>Zustand</strong> lưu bộ lọc, yêu thích, cấu hình nhắc lịch, draft; <strong>TanStack Query</strong> quản lý server cache, realtime subscriptions (Firestore / Demo), giải phóng listener và chống stale data.</td>
-            <td><span class="badge-score">Excellent (9-10)</span></td>
           </tr>
           <tr>
             <td><strong>Code Quality</strong></td>
             <td>15%</td>
             <td>Chuẩn TypeScript strict, clean custom hooks, unit test.</td>
             <td>TypeScript strict mode (0 type errors); tách custom hooks: <code>useRealtimeQuery</code>, <code>useGalleryKeys</code>; kiểm thử <strong>23/23 unit tests passed</strong>.</td>
-            <td><span class="badge-score">Excellent (9-10)</span></td>
           </tr>
         </tbody>
       </table>
