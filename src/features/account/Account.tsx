@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Linking, Switch, Text, View } from "react-native";
+import { Linking, Platform, Switch, Text, View } from "react-native";
 import { useApp } from "../../app/Provider";
 import { Button, Notice, Screen, styles } from "../../components/ui";
 import { usePreferences } from "../../stores/preferences";
-import { cancelReminder, scheduleReminder } from "../../services/reminders";
+import {
+  cancelReminder,
+  scheduleReminder,
+  sendTestReminder,
+} from "../../services/reminders";
 export function Account() {
   const { session, repository, bookings } = useApp();
   const enabled = usePreferences((s) => s.reminders);
@@ -45,6 +49,18 @@ export function Account() {
       setBusy(false);
     }
   };
+  const testReminder = async () => {
+    setBusy(true);
+    try {
+      setMessage(await sendTestReminder());
+    } catch {
+      setMessage(
+        "Chưa thể gửi thông báo thử. Kiểm tra quyền thông báo trên thiết bị.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <Screen edges={["top", "left", "right"]}>
       <Text style={styles.label}>TÀI KHOẢN</Text>
@@ -67,6 +83,15 @@ export function Account() {
           Tùy chọn áp dụng trên thiết bị này. Quyền thông báo được hỏi khi tạo
           nhắc lịch.
         </Text>
+        {Platform.OS !== "web" && (
+          <Button
+            title="Thử thông báo sau 5 giây"
+            secondary
+            busy={busy}
+            disabled={!enabled}
+            onPress={testReminder}
+          />
+        )}
         <Button
           title="Mở cài đặt thiết bị"
           secondary
