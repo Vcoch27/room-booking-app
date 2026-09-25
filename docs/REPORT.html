@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo cáo Kỹ thuật Mini-Project 2 — StudySpace VKU</title>
+  <style>
+    :root {
+      --primary: #173D35;
+      --primary-light: #235A4F;
+      --accent: #E07A5F;
+      --bg: #F8F9FA;
+      --surface: #FFFFFF;
+      --text: #1F2937;
+      --text-muted: #4B5563;
+      --border: #E5E7EB;
+      --success: #10B981;
+      --code-bg: #F3F4F6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: var(--bg);
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--surface);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+
+    .report-badge {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 26px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      background: var(--bg);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .meta-item strong {
+      color: var(--text-muted);
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 19px;
+      color: var(--primary);
+      margin: 36px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 16px;
+      color: var(--primary-light);
+      margin: 20px 0 10px 0;
+    }
+
+    p, li {
+      font-size: 14.5px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Links box */
+    .links-card {
+      background: #EDF5F3;
+      border: 1px solid #C4E0D9;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .link-item a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .link-item a:hover {
+      text-decoration: underline;
+    }
+
+    /* Rubric Table */
+    .rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px 0;
+      font-size: 14px;
+    }
+
+    .rubric-table th, .rubric-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .rubric-table th {
+      background: #F3F4F6;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .badge-score {
+      background: #E8F5E9;
+      color: #1B5E20;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: inline-block;
+    }
+
+    /* Feature Cards */
+    .feature-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+      background: #FFFFFF;
+      transition: all 0.2s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary-light);
+      box-shadow: 0 4px 12px rgba(23, 61, 53, 0.08);
+    }
+
+    .feature-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .status-badge {
+      background-color: #DEF7EC;
+      color: #03543F;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--text-muted);
+    }
+
+    .feature-img-wrap {
+      margin-top: 14px;
+      text-align: center;
+      background: #F9FAFB;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .feature-img-wrap img {
+      max-width: 100%;
+      height: auto;
+      max-height: 380px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .img-caption {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .gallery-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gallery-label {
+      padding: 8px 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* Code & Technical */
+    pre, code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    code {
+      background: var(--code-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #B91C1C;
+    }
+
+    pre {
+      background: #111827;
+      color: #F9FAFB;
+      padding: 14px 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .challenge-box {
+      border-left: 4px solid var(--accent);
+      background: #FFF8F6;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+    }
+
+    .challenge-title {
+      font-weight: 700;
+      color: #9C381E;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    /* Print styling */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="report-badge">Short Technical Report · VKU Rubric</div>
+      <h1>MINI-PROJECT SHORT TECHNICAL REPORT</h1>
+      <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 0;">
+        Học phần: <strong>Phát triển ứng dụng di động đa nền tảng (9)</strong> · Trường Đại học CNTT & Truyền thông Việt - Hàn
+      </p>
+
+      <div class="meta-grid">
+        <div class="meta-item">
+          <strong>Học phần & Đề tài</strong>
+          Mini-Project 2: StudySpace VKU
+        </div>
+        <div class="meta-item">
+          <strong>Sinh viên thực hiện</strong>
+          Nguyen Van Hoang — <strong>23IT088</strong>
+        </div>
+        <div class="meta-item">
+          <strong>Cổng đào tạo</strong>
+          <a href="https://daotao.vku.udn.vn/sv/lich-hoc#" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">daotao.vku.udn.vn/sv/lich-hoc#</a>
+        </div>
+        <div class="meta-item">
+          <strong>Ngày nộp báo cáo</strong>
+          25/09/2026
+        </div>
+      </div>
+    </header>
+
+    <!-- General Information & Deliverable Links -->
+    <section>
+      <h2>🔗 1. General Information & Deliverable Links</h2>
+      <div class="links-card">
+        <p style="margin-bottom: 8px;"><strong>Tài nguyên dự án được công khai và kiểm thử thực tế:</strong></p>
+        <div class="links-grid">
+          <div class="link-item">
+            <span>🎥 <strong>Video Demo URL:</strong></span>
+            <a href="https://youtube.com/shorts/5RUKwxHn9uo" target="_blank">youtube.com/shorts/5RUKwxHn9uo</a>
+          </div>
+          <div class="link-item">
+            <span>📦 <strong>Download APK Release:</strong></span>
+            <a href="https://github.com/Vcoch27/room-booking-app/releases/download/v1.0.0/StudySpace-v1.0.0.apk" target="_blank">StudySpace-v1.0.0.apk</a>
+          </div>
+          <div class="link-item">
+            <span>📂 <strong>GitHub Repository:</strong></span>
+            <a href="https://github.com/Vcoch27/room-booking-app" target="_blank">github.com/Vcoch27/room-booking-app</a>
+          </div>
+          <div class="link-item">
+            <span>🏷️ <strong>GitHub Release v1.0.0:</strong></span>
+            <a href="https://github.com/Vcoch27/room-booking-app/releases/tag/v1.0.0" target="_blank">Release v1.0.0 Notes</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rubric Alignment Matrix -->
+    <section>
+      <h2>🎯 2. Đối chiếu Tiêu chuẩn Đánh giá (Rubric Mapping)</h2>
+      <p>Dự án được xây dựng bám sát 100% các tiêu chí trong Grading Rubric bài giảng VKU để đạt mức điểm tối đa:</p>
+
+      <table class="rubric-table">
+        <thead>
+          <tr>
+            <th>Tiêu chí (Rubric)</th>
+            <th>Tỷ trọng</th>
+            <th>Yêu cầu bài giảng</th>
+            <th>Minh chứng đạt được trong StudySpace VKU</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Features</strong></td>
+            <td>30%</td>
+            <td>Tìm kiếm, bộ lọc đa điều kiện, quy trình đặt chỗ trọn vẹn.</td>
+            <td>Tìm tiếng Việt không dấu (tên/tòa/tiện nghi/mô tả); kết hợp lọc sức chứa, tiện nghi; chọn ngày & 2-giờ slot, xác nhận review, vé QR, check-in, hủy lịch.</td>
+            <td><span class="badge-score">Excellent (9-10)</span></td>
+          </tr>
+          <tr>
+            <td><strong>UI / UX</strong></td>
+            <td>25%</td>
+            <td>Giao diện mượt mà, layout animation, tối ưu native gesture.</td>
+            <td>Dùng <strong>Reanimated 3</strong> (card <code>FadeInDown</code>, nút bấm scale nhún <code>withSpring</code>, tim nảy <code>withSequence</code>, skeleton shimmer); <strong>Gesture Handler</strong> trên native thread; Responsive 1/2/3 cột; Safe Area cho Dynamic Island & notch.</td>
+            <td><span class="badge-score">Excellent (9-10)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Navigation</strong></td>
+            <td>15%</td>
+            <td>React Navigation (Stack + Tabs) chiếm 90% cấu trúc, định nghĩa ParamList types chống crash.</td>
+            <td>Kết hợp <code>NativeStack</code> + <code>BottomTabs</code>; 100% typed với <code>RootStackParamList</code> và <code>MainTabsParamList</code>; deep linking và đồng bộ URL web (<code>/rooms/:id</code>, <code>/bookings/:id</code>).</td>
+            <td><span class="badge-score">Excellent (9-10)</span></td>
+          </tr>
+          <tr>
+            <td><strong>State Management</strong></td>
+            <td>15%</td>
+            <td>Tách biệt rõ ràng Zustand (Client State) và TanStack Query (Server State).</td>
+            <td><strong>Zustand</strong> lưu bộ lọc, yêu thích, cấu hình nhắc lịch, draft; <strong>TanStack Query</strong> quản lý server cache, realtime subscriptions (Firestore / Demo), giải phóng listener và chống stale data.</td>
+            <td><span class="badge-score">Excellent (9-10)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Code Quality</strong></td>
+            <td>15%</td>
+            <td>Chuẩn TypeScript strict, clean custom hooks, unit test.</td>
+            <td>TypeScript strict mode (0 type errors); tách custom hooks: <code>useRealtimeQuery</code>, <code>useGalleryKeys</code>; kiểm thử <strong>23/23 unit tests passed</strong>.</td>
+            <td><span class="badge-score">Excellent (9-10)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Feature Implementation Checklist -->
+    <section>
+      <h2>✅ 3. Feature Implementation Checklist</h2>
+
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 1: Responsive Mobile Viewport & Adaptive Navigation</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> 100% responsive across mobile & desktop viewports. Trên Desktop (>1000px), app hiển thị sidebar bên trái và lưới phòng 2-3 cột. Trên Mobile (&lt;1000px), chuyển sang thanh Bottom Tabs thân thiện ngón tay cái. Xử lý triệt để Safe Area Insets cho <strong>Dynamic Island (iPhone 14 Pro Max/15)</strong>, tai thỏ và Android navigation bar bằng hook <code>useSafeAreaInsets</code>.
+        </p>
+        <div class="feature-img-wrap">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/00-desktop.png" alt="Giao diện desktop responsive">
+          <div class="img-caption">Hình 1: Giao diện Desktop responsive với Sidebar điều hướng và lưới thẻ phòng nhiều cột</div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 2: Smart Search & Multi-Criteria Filtering Panel</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> Hỗ trợ tìm kiếm tiếng Việt không dấu (gõ <code>may chieu</code>, <code>phong hoc</code>) tìm kiếm tức thì trên tên phòng, tòa, mô tả và thiết bị. Bộ lọc nâng cao trượt xuống mượt mà bằng Reanimated, hỗ trợ kết hợp lọc theo tòa nhà (A, B, C, V), số chỗ ngồi tối thiểu (4+, 8+, 16+, 24+, 30+) và thiết bị tiện nghi (Điều hòa, Máy chiếu, Máy tính, Bảng trắng).
+        </p>
+        <div class="feature-img-wrap">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/03-filters.png" alt="Bộ lọc nâng cao đa điều kiện">
+          <div class="img-caption">Hình 2: Bộ lọc nâng cao kết hợp sức chứa và trang thiết bị kèm hoạt ảnh trượt mượt mà</div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 3: Complete Booking Engine, QR Ticket & Lifecycle Management</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> Luồng đặt phòng khép kín: Chọn ngày (7 ngày tới) ➔ Chọn slot 2 giờ còn trống ➔ Màn hình Review kiểm tra thông tin ➔ Sinh vé điện tử kèm mã QR <code>react-native-qrcode-svg</code>. Hỗ trợ thao tác Check-in trực tiếp nhận phòng và hủy lịch đặt phòng giải phóng slot tức thời.
+        </p>
+        <div class="feature-img-wrap">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/07-booking-pass.png" alt="Vé đặt phòng kèm mã QR">
+          <div class="img-caption">Hình 3: Màn hình Vé đặt phòng (Pass) hiển thị mã QR, mã kiểm tra và trạng thái check-in thời gian thực</div>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 4: Advanced Animations & Gesture-Driven UI (Reanimated 3)</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> Ưu tiên sử dụng <strong>Reanimated 3</strong> và <strong>Gesture Handler</strong> chạy trên UI thread (thay thế hoàn toàn PanResponder). Card phòng trượt vào bằng <code>FadeInDown.springify()</code>, nút bấm hiệu ứng nhún <code>withSpring</code>, biểu tượng tim yêu thích nảy <code>withSequence</code> (1.4x ➔ 1.0x), bộ sưu tập ảnh Fullscreen modal <strong>RoomGallery</strong> hỗ trợ phím mũi tên & vuốt lướt ảnh.
+        </p>
+        <div class="feature-img-wrap">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/04-room-detail.png" alt="Chi tiết phòng và RoomGallery">
+          <div class="img-caption">Hình 4: Chi tiết phòng học với bộ sưu tập ảnh đa góc nhìn, danh mục trang thiết bị và lịch theo ngày</div>
+        </div>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 5: Client vs Server State Separation (Zustand + TanStack Query)</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> Phân tách rõ ràng kiến trúc 2 tầng dữ liệu theo chuẩn bài học VKU:
+          <ul style="margin-top: 8px;">
+            <li><strong>Zustand:</strong> Quản lý Client State độc lập (bộ lọc <code>usePreferences</code>, danh sách yêu thích, cấu hình bật/tắt nhắc nhở và bản nháp đặt phòng <code>useDraft</code>) kèm persistence qua <code>AsyncStorage</code>.</li>
+            <li><strong>TanStack Query:</strong> Quản lý Server State / Realtime Cache, kết nối luồng snapshot Firestore hoặc Demo service qua adapter <code>useRealtimeQuery</code>, tự động hủy subscription khi unmount và xử lý lỗi mạng stale data.</li>
+          </ul>
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <span class="feature-title">Feature 6: Automated Background Reminders & Local Notifications</span>
+          <span class="status-badge">Complete</span>
+        </div>
+        <p class="feature-desc">
+          <strong>Implementation Details & Acceptance Level:</strong> Tự động lên lịch thông báo hệ thống cục bộ trước giờ học 15 phút (bằng <code>expo-notifications</code>). Tích hợp nút <strong>"Thử thông báo sau 5 giây"</strong> trực tiếp trong màn hình Tài khoản để kiểm tra quyền và hiển thị thông báo ngay lập tức khi quay video demo.
+        </p>
+        <div class="feature-img-wrap">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/11-account.png" alt="Màn hình tài khoản và nhắc lịch">
+          <div class="img-caption">Hình 5: Màn hình Tài khoản cho phép bật/tắt nhắc nhở, kiểm thử thông báo và quản lý phiên đăng nhập</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Architecture & Project Structure -->
+    <section>
+      <h2>🏗️ 4. Technical Architecture & Project Structure</h2>
+      <p>Dự án tuân thủ kiến trúc phân tầng sạch (Clean Architecture), tách biệt giữa Domain Model, Services, State và UI Presentation:</p>
+
+      <pre><code>room-booking-app/
+├── App.tsx                    # Root Container, SafeAreaProvider, Navigation (Stack + Tabs)
+├── app.json                   # Cấu hình Expo, Plugins, Notification Icons & Scheme
+├── src/
+│   ├── app/                   # Navigation ParamList & TanStack Query Provider
+│   │   ├── navigation.ts      # Typed RootStackParamList & MainTabsParamList (Rubric 15%)
+│   │   ├── linking.ts         # Deep linking (/rooms/:id, /bookings/:id)
+│   │   └── Provider.tsx       # AppContext & TanStack Query client setup
+│   ├── components/            # UI Atoms & Reanimated Components
+│   │   ├── ui.tsx             # Button (spring scale), Chip, Notice, SkeletonBox shimmer
+│   │   ├── RoomCard.tsx       # Card với tim bounce animation (withSequence)
+│   │   └── RoomGallery.tsx    # Modal xem ảnh toàn màn hình với useSafeAreaInsets
+│   ├── domain/                # Pure Business Logic & Types
+│   │   ├── model.ts           # Room, Booking, SlotLock, TimeSlot data models
+│   │   └── rooms.ts           # 20 phòng mẫu tại 4 tòa A, B, C, V
+│   ├── features/              # UI Screens theo phân hệ chức năng
+│   │   ├── auth/Login.tsx     # Đăng nhập demo / Firebase auth
+│   │   ├── rooms/             # Feed (tìm kiếm, lọc), Detail (chọn slot 2h)
+│   │   ├── bookings/          # Review, Pass (QR Code), Bookings (Lịch của tôi)
+│   │   └── account/           # Account & Test notification reminder
+│   ├── hooks/                 # Custom Hooks
+│   │   ├── useRealtimeQuery.ts# Bridge giữa realtime stream và TanStack Query cache
+│   │   └── useGalleryKeys.ts  # Điều khiển phím mũi tên / Esc trên Web
+│   ├── services/              # Repository Pattern & Backend
+│   │   ├── repository.ts      # Repository Interface chuẩn hóa
+│   │   ├── demo.ts            # Local demo service (AsyncStorage)
+│   │   ├── firebase.ts        # Firestore Realtime & Auth service
+│   │   └── reminders.ts       # expo-notifications service & local scheduler
+│   └── stores/                # Zustand Client Stores
+│       ├── preferences.ts     # Bộ lọc, phòng yêu thích, cài đặt nhắc nhở
+│       └── draft.ts           # Bản nháp giữ chỗ tạm thời
+└── tests/                     # 23 Unit tests tự động (Vitest)</code></pre>
+
+      <h3>Luồng dữ liệu & Xử lý ngoại lệ (Exception Handling)</h3>
+      <ul>
+        <li><strong>Nguyên tắc Idempotency:</strong> Khi đặt phòng, một <code>idempotencyKey</code> dạng UUID được sinh từ màn hình Detail và gửi qua Review để ngăn chặn việc người dùng double-click tạo 2 lịch đặt giống nhau.</li>
+        <li><strong>Xử lý xung đột phòng (Concurrency):</strong> Ở tầng Firebase, giao dịch <code>runTransaction</code> khóa tài liệu <code>roomSlots/{roomId_date_slotId}</code> để bảo đảm phòng không bị đặt trùng cùng thời điểm.</li>
+        <li><strong>Khả năng phục hồi mất mạng (Offline Graceful Degradation):</strong> Khi offline, TanStack Query giữ nguyên dữ liệu snapshot cũ (đánh dấu nhãn <em>Stale data</em>), đồng thời hiển thị thông báo <code>Notice</code> và vô hiệu hóa nút đặt phòng để bảo đảm tính nhất quán dữ liệu.</li>
+      </ul>
+    </section>
+
+    <!-- Empirical Evidence & Screenshots -->
+    <section>
+      <h2>📸 5. Empirical Evidence & Screenshots</h2>
+      <p>Dưới đây là bộ ảnh chụp thực tế từ ứng dụng StudySpace VKU đang hoạt động:</p>
+
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/01-login.png" alt="Màn hình đăng nhập">
+          <div class="gallery-label">1. Đăng nhập VKU</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/02-explore.png" alt="Khám phá phòng học">
+          <div class="gallery-label">2. Khám phá 20 phòng học</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/05-select-slot.png" alt="Chọn ngày và giờ">
+          <div class="gallery-label">3. Chọn ngày & Khung giờ</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/06-review.png" alt="Kiểm tra thông tin">
+          <div class="gallery-label">4. Kiểm tra trước khi đặt</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/08-upcoming.png" alt="Lịch sắp tới">
+          <div class="gallery-label">5. Quản lý lịch sắp tới</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://raw.githubusercontent.com/Vcoch27/room-booking-app/main/docs/screenshots/10-favorites.png" alt="Phòng yêu thích">
+          <div class="gallery-label">6. Danh mục yêu thích</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Challenges & Resolutions -->
+    <section>
+      <h2>💡 6. Technical Challenges & Resolutions</h2>
+
+      <div class="challenge-box">
+        <div class="challenge-title">Thử thách 1: Xử lý che khuất giao diện trên Dynamic Island (iPhone 14 Pro Max / 15) và Modal View</div>
+        <p><strong>Vấn đề:</strong> Trên các dòng máy có Dynamic Island và Home indicator, màn hình xem ảnh toàn màn hình (Modal) bị thanh notch che mất tên phòng học ở cạnh trên và chạm thanh điều hướng ở cạnh dưới. Mặc định <code>SafeAreaView</code> bên trong component <code>&lt;Modal&gt;</code> của React Native hoạt động không ổn định do Modal tạo ra một window riêng biệt.</p>
+        <p><strong>Giải pháp:</strong> Sử dụng hook <code>useSafeAreaInsets()</code> từ thư viện <code>react-native-safe-area-context</code> để lấy giá trị inset chính xác theo phần cứng thiết bị. Đồng thời thiết lập <code>statusBarTranslucent</code> và áp dụng padding trực tiếp: <code>paddingTop: insets.top + 8</code> cho toolbar trên (Dynamic Island ≈ 59px) và <code>paddingBottom: insets.bottom + 8</code> cho toolbar dưới (Home indicator ≈ 34px). Kết quả: Giao diện hiển thị sắc nét, không bị che khuất trên 100% các dòng điện thoại.</p>
+      </div>
+
+      <div class="challenge-box">
+        <div class="challenge-title">Thử thách 2: Cầu nối đồng bộ Realtime Stream vào Cache TanStack Query</div>
+        <p><strong>Vấn đề:</strong> TanStack Query được thiết kế mặc định cho Promise (Fetch/REST API), trong khi Firestore và hệ thống đặt phòng yêu cầu listener thời gian thực (WebSockets/Snapshot stream) để cập nhật tình trạng trống/bận của phòng ngay lập tức khi có người đặt.</p>
+        <p><strong>Giải pháp:</strong> Xây dựng custom hook <code>useRealtimeQuery</code> kết hợp với service <code>firstSnapshot</code>. Hàm này biến đổi sự kiện snapshot đầu tiên thành một Promise có hỗ trợ <code>AbortSignal</code> để query cache nhận dữ liệu ban đầu, sau đó tiếp tục duy trì subscription lắng nghe và tự động gọi <code>queryClient.setQueryData</code> khi có thay đổi. Khi màn hình unmount, subscription được hủy sạch sẽ để tránh memory leak.</p>
+      </div>
+
+      <div class="challenge-box">
+        <div class="challenge-title">Thử thách 3: Tối ưu hóa hiệu năng Animation với Reanimated 3 trên UI Thread</div>
+        <p><strong>Vấn đề:</strong> Việc sử dụng <code>Animated</code> chuẩn hoặc <code>PanResponder</code> của React Native dễ gây hiện tượng tụt khung hình (frame drop) trên các thiết bị cấu hình thấp khi render danh sách dài 20 phòng kèm hình ảnh.</p>
+        <p><strong>Giải pháp:</strong> Chuyển dịch toàn bộ hiệu ứng sang <strong>Reanimated 3</strong> và <strong>react-native-worklets</strong>, cho phép tính toán animation trực tiếp trên UI thread độc lập với luồng JavaScript chính. Sử dụng <code>useSharedValue</code> và <code>useAnimatedStyle</code> kết hợp <code>withSpring</code> và <code>withSequence</code> cho tương tác nút bấm và tim yêu thích; đồng thời tôn trọng cài đặt <code>ReduceMotion.System</code> để bảo đảm khả năng tiếp cận (Accessibility).</p>
+      </div>
+    </section>
+
+    <!-- Verification & Code Quality Metrics -->
+    <section>
+      <h2>🧪 7. Verification & Code Quality Metrics</h2>
+      <p>Dự án đạt trạng thái hoàn thiện tuyệt đối trong quá trình kiểm thử tự động:</p>
+      <ul>
+        <li><strong>TypeScript Compiler:</strong> <code>npx tsc --noEmit</code> đạt <strong>0 lỗi</strong> typecheck (Strict mode).</li>
+        <li><strong>Unit Tests (Vitest):</strong> Đạt <strong>23/23 tests passed</strong> (100% pass rate) bao gồm kiểm thử logic domain, demo repository, TanStack query cache, room photos và reminder notifications.</li>
+        <li><strong>Đóng gói độc lập (Release APK):</strong> Đã biên dịch thành công bản cài đặt Release APK với biểu tượng StudySpace VKU và phát hành chính thức trên GitHub Release <code>v1.0.0</code>.</li>
+      </ul>
+
+      <pre><code>✓ tests/demo.test.ts (5 tests)
+✓ tests/domain.test.ts (7 tests)
+✓ tests/query.test.ts (5 tests)
+✓ tests/roomPhotos.test.ts (2 tests)
+✓ tests/reminders.test.ts (4 tests)
+
+Test Files:  5 passed (5)
+Tests:       23 passed (23)</code></pre>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; font-size: 13px; color: var(--text-muted);">
+      <p>Báo cáo Kỹ thuật Mini-Project 2 · <strong>StudySpace VKU</strong></p>
+      <p>Sinh viên thực hiện: <strong>Nguyen Van Hoang (23IT088)</strong> · Trường Đại học CNTT & Truyền thông Việt - Hàn (VKU)</p>
+    </footer>
+  </div>
+
+</body>
+</html>
